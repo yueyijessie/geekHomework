@@ -41,7 +41,7 @@ class Request {
             }
             connection.on('data', (data) => {
                 console.log(data.toString());
-                parser.received(data.toString());
+                parser.receive(data.toString());
                 if (parser.isFinished) {
                     resolve(parser.response);
                     connection.end();
@@ -87,7 +87,7 @@ class TrunkedBodyParser{
                 if (this.length === 0) {
                     this.isFinished = true;
                 }
-                this.current = this.WAITING_LENGTH;
+                this.current = this.WAITING_LENGTH_LINE_END;
             } else {
                 this.length *= 16;
                 this.length += parseInt(char, 16);
@@ -98,7 +98,7 @@ class TrunkedBodyParser{
             }
         } else if (this.current === this.READING_TRUNK) {
             this.content.push(char);
-            this.length --;
+            this.length--;
             if (this.length === 0){
                 this.current = this.WAITING_NEW_LINE;
             }
@@ -145,7 +145,7 @@ class ResponseParser {
             body: this.bodyParser.content.join('')
         }
     }
-    received(string){
+    receive(string){
         for(let i = 0; i < string.length; i++) {
             this.receiveChar(string.charAt(i));
         }
