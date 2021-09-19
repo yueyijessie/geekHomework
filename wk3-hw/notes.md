@@ -67,12 +67,23 @@
 
 # 第五节：绘制单个元素
 
-真正的浏览器还会有持续的绘制和监听
+> 真正的浏览器还会有持续的绘制和监听
 
-绘制的实现需要准备图形环境，使用了npm包images
-绘制在一个viewport上进行
-与绘制相关的属性有：background-color，border，background-image等
+- 绘制的实现需要准备图形环境，使用了npm包images
+- 绘制在一个viewport上进行
+- 与绘制相关的属性有：background-color，border，background-image等
 
 # 第六节：绘制DOM
 
-递归
+- 递归调用子元素的绘制方法完成DOM树的绘制
+- 忽略一些不需要绘制的节点
+- 实际浏览器中，文字绘制是难点，需要依赖字体库，我们这里忽略
+- 实际浏览器中，还会对一些图层做compositing，也忽略了
+
+url 
+html代码
+dom树
++css属性
+计算每个元素的位置
+在图片上把内容画出来
+

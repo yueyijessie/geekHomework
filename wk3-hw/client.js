@@ -234,7 +234,7 @@ void async function () {
 
     // 创建视口
     let viewport = images(800, 600);
-    // html -> body -> container -> c1
-    render(viewport, dom.children[0].children[3].children[1].children[3]);
+    // render整个dom树
+    render(viewport, dom);
     viewport.save("viewport.jpg");
 }();
