@@ -1,6 +1,8 @@
 const net = require('net');
 
 const parser = require('./parser.js'); // 导入parser
+const render = require('./render.js'); //
+const images = require('images'); //
 
 // http request class
 class Request {
@@ -228,5 +230,11 @@ void async function () {
     let dom = parser.parseHTML(response.body);
     // console.log(dom)
 
-    console.log(JSON.stringify(dom, null, "    "));
+    // console.log(JSON.stringify(dom, null, "    "));
+
+    // 创建视口
+    let viewport = images(800, 600);
+    // html -> body -> container -> c1
+    render(viewport, dom.children[0].children[3].children[1].children[3]);
+    viewport.save("viewport.jpg");
 }();

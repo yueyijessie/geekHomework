@@ -4,7 +4,17 @@
 
 排版使用flex排版为例，目前css有3代排版技术
 - 第一代:正常流，float，position
-- 第二代: flex，接近人的自然思维，填满剩余空间（好实现，能力也强）
+- 第二代: flex，接近人的自然思维，填满剩余空间（好实现，能力也强）    
+   - 基本概念
+        - flex-Direction
+        - flex-Wrap
+        - justify-Content
+        - align-content:
+        - align-item: 
+   - flex排版过程
+       1. 收集元素放入主轴
+       2. 计算主轴，分配主轴剩余空间
+       3. 计算交叉轴
 - 第三代: grid， 更强大
 - 第四代: css houdini，有点第四代的味道
 
@@ -54,3 +64,15 @@
 计算交叉轴方向
 - 根据每一行中最大元素尺寸计算行高
 - 根据行高flex-align和item-align，确定元素具体位置
+
+# 第五节：绘制单个元素
+
+真正的浏览器还会有持续的绘制和监听
+
+绘制的实现需要准备图形环境，使用了npm包images
+绘制在一个viewport上进行
+与绘制相关的属性有：background-color，border，background-image等
+
+# 第六节：绘制DOM
+
+递归
