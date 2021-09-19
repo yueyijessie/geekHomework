@@ -222,9 +222,11 @@ void async function () {
 
     // console.log(request);
     let response = await request.send();
-    console.log(response);
+    // console.log(response);
 
     // 把返回值通过parse变成一个dom树
     let dom = parser.parseHTML(response.body);
-    console.log(dom)
+    // console.log(dom)
+
+    console.log(JSON.stringify(dom, null, "    "));
 }();
