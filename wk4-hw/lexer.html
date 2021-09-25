@@ -9,15 +9,63 @@
     //         Token: /<NumericLiteral>|<BooleanLiteral>/
     // }
 
-    function compileRegExp(xregexp, name) {
-        if (xregexp[name] instanceof RegExp) {
-            return xregexp[name].source;
+    class XRegExp {
+        constructor(source, flag, root = "root") {
+            this.table = new Map();
+            this.regexp = new RegExp(this.compileRegExp(source, root, 0).source, flag);
+            console.log(this.regexp);
+            console.log(this.table);
         }
-        let regexp = xregexp[name].replace(/\<([^>]+)\>/g, function(str, $1){
-            return compileRegExp(xregexp, $1);
-        });
-        return regexp;
+        compileRegExp(source, name, start) {
+            if (source[name] instanceof RegExp) {
+                return {
+                    source: source[name].source,
+                    length: 0
+                };
+            }
+            let length = 0;
+            let regexp = source[name].replace(/\<([^>]+)\>/g, (str, $1) => {
+                this.table.set(start + length, $1);
+                //this.table.set($1, start + length);
+                ++length;
+                let r = this.compileRegExp(source, $1, start + length);
+                length += r.length;
+                return "(" + r.source + ")";
+            });
+            return {
+                source: regexp,
+                length: length
+            };
+        }
+
+        exec(string){
+            let r = this.regexp.exec(string);
+            for (let i = 1; i < r.length; i++) {
+                if(r[i] !== void 0){ // 如果不是undeifned
+                    // console.log(this.table.get(i - 1));
+                    r[this.table.get(i - 1)] = r[i];
+                }
+            }
+            console.log(JSON.stringify(r[0]));
+            return r;
+        }
+        get lastIndex(){
+            return this.regexp.lastIndex;
+        }
+        set lastIndex(value){
+            return this.regexp.lastIndex = value;
+        }
     }
+
+    // function compileRegExp(xregexp, name) {
+    //     if (xregexp[name] instanceof RegExp) {
+    //         return xregexp[name].source;
+    //     }
+    //     let regexp = xregexp[name].replace(/\<([^>]+)\>/g, function(str, $1){
+    //         return compileRegExp(xregexp, $1);
+    //     });
+    //     return regexp;
+    // }
 
     // console.log(JSON.stringify(regexp));
     // console.log(new RegExp(regexp, "g")); // 变为正则表达式
@@ -33,26 +81,26 @@
         // 多行注释 + 单行注释 + token（整数，1-9开头，0-9结尾，重复多次，或者0）
         // let regexp = / |\n|\/\*([^*]|\*[^\/])*\*\/|\/\/[^\n]*|[1-9][0-9]*|0/g;
 
-        let regexp = new RegExp(compileRegExp({
+        let regexp = new XRegExp({
             InputElement: "<WhiteSpace>|<LineTerminator>|<Comments>|<Token>",
             WhiteSpace: / /,
             LineTerminator: /\n/,
-            Comments: /\/\*([^*]|\*[^\/])*\*\/|\/\/[^\n]*/,
+            Comments: /\/\*(?:[^*]|\*[^\/])*\*\/|\/\/[^\n]*/,
             Token: "<Literal>|<Keywords>|<Identifier>|<Punctuator>", // keyword要写在identifier前，因为keyword满足identifier的一切属性
             Literal: "<NumericLiteral>|<BooleanLiteral>|<StringLiteral>|<NullLiteral>",
-            NumericLiteral: /([1-9][0-9]*|0)(\.[0-9]*)?|\.[0-9]+/, // 十进制整数+小数
+            NumericLiteral: /(?:[1-9][0-9]*|0)(?:\.[0-9]*)?|\.[0-9]+/, // 十进制整数+小数
             BooleanLiteral: /true|false/,
-            StringLiteral: /\"([^"\n]|\\[\s\S])*\"|\'([^'\n]|\\[\s\S])*\'/,  //实际字符串要更复杂，还有多种换行符，转义符等
+            StringLiteral: /\"(?:[^"\n]|\\[\s\S])*\"|\'(?:[^'\n]|\\[\s\S])*\'/,  //实际字符串要更复杂，还有多种换行符，转义符等
             NullLiteral: /null/,
             Identifier: /[a-zA-Z_$][a-zA-Z0-9_$]*/,
             Keywords: /if|else|for|function|let/,
             Punctuator: /\+|\,|\?|\:|\{|\}|\.|\(|\=|\<|\+\+|\=\=|\=\>|\*|\)|\[|\]|;/
-        }, "InputElement"), "g")
+        }, "g", "InputElement")
 
         while(regexp.lastIndex < str.length) {
             let r = regexp.exec(str); // 返回匹配到的字符，或者null
-            console.log(JSON.stringify(r[0]));
-            document.write(r[0])
+            console.log(r);
+            // document.write(r[0])
             if (!r[0].length){
                 break;
             }
