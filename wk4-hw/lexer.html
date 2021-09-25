@@ -1,0 +1,77 @@
+<pre>
+
+<script>
+    // let xregexp = {
+    //     InputElement: /<WhiteSpace>|<LineTerminator>|<Comments>/,
+    //         WhiteSpace: / /,
+    //         LineTerminator: /\n/,
+    //         Comments: /\*([^*]|\*[^\/])*\*\/|\/\/[^\n]*/,
+    //         Token: /<NumericLiteral>|<BooleanLiteral>/
+    // }
+
+    function compileRegExp(xregexp, name) {
+        if (xregexp[name] instanceof RegExp) {
+            return xregexp[name].source;
+        }
+        let regexp = xregexp[name].replace(/\<([^>]+)\>/g, function(str, $1){
+            return compileRegExp(xregexp, $1);
+        });
+        return regexp;
+    }
+
+    // console.log(JSON.stringify(regexp));
+    // console.log(new RegExp(regexp, "g")); // 变为正则表达式
+
+    // 使用正则进行词法分析
+    function scan(str){
+        // /<space>|<lineTerminator>|<comments>|<token>/
+        // 结尾加g，匹配多次
+        // 多行注释
+        // let regexp = / |\n|\/\*([^*]|\*[^\/])*\*\//g;
+        // 多行 + 单行 注释
+        // let regexp = / |\n|\/\*([^*]|\*[^\/])*\*\/|\/\/[^\n]*/g;
+        // 多行注释 + 单行注释 + token（整数，1-9开头，0-9结尾，重复多次，或者0）
+        // let regexp = / |\n|\/\*([^*]|\*[^\/])*\*\/|\/\/[^\n]*|[1-9][0-9]*|0/g;
+
+        let regexp = new RegExp(compileRegExp({
+            InputElement: "<WhiteSpace>|<LineTerminator>|<Comments>|<Token>",
+            WhiteSpace: / /,
+            LineTerminator: /\n/,
+            Comments: /\/\*([^*]|\*[^\/])*\*\/|\/\/[^\n]*/,
+            Token: "<Literal>|<Keywords>|<Identifier>|<Punctuator>", // keyword要写在identifier前，因为keyword满足identifier的一切属性
+            Literal: "<NumericLiteral>|<BooleanLiteral>|<StringLiteral>|<NullLiteral>",
+            NumericLiteral: /([1-9][0-9]*|0)(\.[0-9]*)?|\.[0-9]+/, // 十进制整数+小数
+            BooleanLiteral: /true|false/,
+            StringLiteral: /\"([^"\n]|\\[\s\S])*\"|\'([^'\n]|\\[\s\S])*\'/,  //实际字符串要更复杂，还有多种换行符，转义符等
+            NullLiteral: /null/,
+            Identifier: /[a-zA-Z_$][a-zA-Z0-9_$]*/,
+            Keywords: /if|else|for|function|let/,
+            Punctuator: /\+|\,|\?|\:|\{|\}|\.|\(|\=|\<|\+\+|\=\=|\=\>|\*|\)|\[|\]|;/
+        }, "InputElement"), "g")
+
+        while(regexp.lastIndex < str.length) {
+            let r = regexp.exec(str); // 返回匹配到的字符，或者null
+            console.log(JSON.stringify(r[0]));
+            document.write(r[0])
+            if (!r[0].length){
+                break;
+            }
+        }
+    }
+
+    scan(`
+        for(let i = 0; i < 3; i++){
+            for (let j = 0; j < 3; j++) {
+                let cell = document.createElement("div");
+                cell.classList.add("cell");
+                cell.innerText = pattern[i*3+j] == 2 ? "❌" :
+                    pattern[i * 3 + j] == 1 ? "⭕️" : "";
+                cell.addEventListener("click", () => userMove(j,i));
+                board.appendChild(cell);
+            }
+            board.appendChild(document.createElement("br"));
+        }
+    `)
+
+</script>
+</pre>
