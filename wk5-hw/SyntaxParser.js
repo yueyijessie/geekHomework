@@ -1,3 +1,5 @@
+// toyjs
+
 import {scan} from "./LexParser.js";
 
 // 对abnf进行结构化处理，形成语法树
@@ -45,7 +47,11 @@ let syntax = {
         ["Identifier"]
     ],
     Literal: [
-        ["Number"]
+        ["Number"],
+        ["String"],
+        ["Boolean"],
+        ["Null"],
+        ["RegularExpression"]
     ]
 }
 
@@ -107,8 +113,13 @@ let start = {
 
 closure(start);
 
+
+//////////////////////////////////////////////////////
+// parser
+
 let source = `
     let a;
+    var b;
 `;
 
 function parse(source) {
@@ -151,13 +162,44 @@ function parse(source) {
         shift(symbol);
         // console.log(symbol);
     }
-    console.log(reduce());
+    // console.log(reduce());
+    return reduce();
+}
 
+let evaluator = {
+    Program(node){
+        return evaluate(node.children[0]);
+    },
+    StatementList(node) {
+        console.log(node)
+        if (node.children.length === 1) {
+            return evaluate(node.children[0]);
+        } else {
+            evaluate(node.children[0]);
+            return evaluate(node.children[1]);
+        }
+    },
+    Statement(node) {
+        return evaluate(node.children[0]);
+    },
+    VariableDeclaration(node){
+        console.log("Declare varible", node.children[1].value);
+    },
+    EOF() {
+        return null;
+    }
+}
+
+// 执行语法树
+function evaluate(node) {
+    if (evaluator[node.type]){
+        return evaluator[node.type](node);
+    }
 }
 
 
-
-parse(source);
+let tree = parse(source);
+evaluate(tree);
 
 // for (let symbol of scan(source)) {
 //     console.log(symbol);
