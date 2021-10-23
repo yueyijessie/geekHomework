@@ -168,6 +168,7 @@ function parse(source) {
 
 let evaluator = {
     Program(node){
+        console.log(node)
         return evaluate(node.children[0]);
     },
     StatementList(node) {
