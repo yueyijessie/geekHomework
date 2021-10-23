@@ -19,6 +19,11 @@ let syntax = {
         ["if", "(", "Expression", ")", "Statement"]
     ],
     Expression: [
+        ["AssignmentExpression"]
+    ],
+    // 把identifier当作lefthandsideExpression
+    AssignmentExpression:[
+        ["Identifier", "=", "AdditiveExpression"],
         ["AdditiveExpression"]
     ],
     VariableDeclaration: [
@@ -80,7 +85,7 @@ function closure(state) {
     for (let symbol in state) {
         // 以dollar开头的属性，直接略过，不会被当作普通状态迁移的属性
         if (symbol.match(/^\$/)){
-            return;
+            continue;
         }
         queue.push(symbol);
     }
@@ -106,7 +111,7 @@ function closure(state) {
     for (let symbol in state) {
         // 以dollar开头，直接略过
         if (symbol.match(/^\$/)){
-            return;
+            continue;
         }
         // 出口调用hash，判断
         if (hash[JSON.stringify(state[symbol])]){
@@ -175,13 +180,54 @@ export function parse(source) {
     return reduce();
 }
 
+class Realm {
+    constructor(){
+        this.global = new Map(),
+        this.Object = new Map(),
+        this.Object.call = function(){
+
+        }
+        this.Object_prototype = new Map()
+    }
+}
+
+class EnvironmentRecord {
+    constructor(){
+        this.thisValue
+        this.variables = new Map(),
+        this.outer = null;
+    }
+}
+
+class ExecutionContext {
+    constructor(){
+        this.lexicalEnvironment = {};
+        this.variableEnvironment = this.lexicalEnvironment;
+        this.realm = {};
+    }
+    // lexicalEnvironment:{a:1, b:2}
+}
+
+class Reference {
+    constructor(object, property){
+        this.object = object;
+        this.property = property;
+    }
+    set(value){
+        this.object[this.property] = value;
+    }
+    get(){
+        return this.object[this.property];
+    }
+}
+
 let evaluator = {
     Program(node){
-        console.log(node)
+        // console.log(node)
         return evaluate(node.children[0]);
     },
     StatementList(node) {
-        console.log(node)
+        // console.log(node)
         if (node.children.length === 1) {
             return evaluate(node.children[0]);
         } else {
@@ -193,7 +239,9 @@ let evaluator = {
         return evaluate(node.children[0]);
     },
     VariableDeclaration(node){
-        console.log("Declare varible", node.children[1].name);
+        // console.log("Declare varible", node.children[1].name);
+        let runningEC = ecs[ecs.length - 1];
+        runningEC.variableEnvironment[node.children[1].name];
     },
     ExpressionStatement(node){
         return evaluate(node.children[0]);
@@ -250,7 +298,7 @@ let evaluator = {
             }
             value = value * n + c
         }
-        console.log(value)
+        // console.log(value)
         return Number(node.value);
         // return evaluate(node.children[0]);
     },
@@ -283,7 +331,7 @@ let evaluator = {
                 result.push(node.value[i]);
             }
         }
-        console.log(result);
+        // console.log(result);
         return result.join('');
     },
     ObjectLiteral(node){
@@ -298,7 +346,6 @@ let evaluator = {
         }
     },
     PropertyList(node, object){
-        console.log(node.children)
         if(node.children.length === 1){
             this.Property(node.children[0], object);
         } else {
@@ -319,13 +366,34 @@ let evaluator = {
             enumerable: true,
             configable: true
         })
+    },
+    AssignmentExpression(node){
+        if(node.children.length === 1){
+            return evaluate(node.children[0]);
+        }
+        let left = evaluate(node.children[0]);
+        let right = evaluate(node.children[2]);
+        left.set(right);
+    },
+    Identifier(node){
+        console.log(node)
+        let runningEC = ecs[ecs.length - 1];
+        return new Reference(
+            runningEC.lexicalEnvironment,
+            node.value
+        );
     }
 }
+
+let realm = new Realm();
+let ecs = [new ExecutionContext]
 
 // 执行语法树
 function evaluate(node) {
     if (evaluator[node.type]){
-        return evaluator[node.type](node);
+        let r = evaluator[node.type](node);
+        // console.log(r);
+        return r;
     }
 }
 /////////////////////////////////////////////////

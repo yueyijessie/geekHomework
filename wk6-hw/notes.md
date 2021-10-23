@@ -35,6 +35,8 @@ prototype
 ## Toy-JavaScript ｜ 为toyjs添加对象类型
 
 ## Toy-JavaScript ｜ 执行上下文
+处理identifier，存在哪
+js没有栈堆，js存储在ExecuationContext
 
 ## Toy-JavaScript ｜ 处理toyjs中的变量和直接量解析
 
