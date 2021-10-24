@@ -12,8 +12,12 @@ let syntax = {
     Statement: [
         ["ExpressionStatement"],
         ["IfStatement"],
+        ["WhileStatement"],
         ["VariableDeclaration"],
         ["FunctionDeclaration"]
+    ],
+    WhileStatement: [
+        ["while", "(", "Expression", ")", "Statement"]
     ],
     IfStatement: [
         ["if", "(", "Expression", ")", "Statement"]

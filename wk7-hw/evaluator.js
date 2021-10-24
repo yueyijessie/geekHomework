@@ -36,6 +36,18 @@ export class Evaluator {
             return this.evaluate(node.children[4]);
         }
     }
+    WhileStatement(node){
+        while(true){
+            let condition = this.evaluate(node.children[2]); // expression
+            if(condition instanceof Reference)
+                condition = condition.get();   
+            if(condition.toBoolean().value){
+                this.evaluate(node.children[4]);
+            } else {
+                break;
+            }
+        } 
+    }
     StatementList(node) {
         // console.log(node)
         if (node.children.length === 1) {
@@ -75,7 +87,7 @@ export class Evaluator {
                 return left + right;
             }
             if(node.children[1].type === "-"){
-                return left - right;
+                return new JSNumber(left.value - right.value);
             }
         }
     }
@@ -284,7 +296,6 @@ export class Evaluator {
         }
     }
     Identifier(node){
-        console.log(node)
         let runningEC = this.ecs[this.ecs.length - 1];
         return new Reference(
             runningEC.lexicalEnvironment,
