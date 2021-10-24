@@ -18,6 +18,10 @@ export class Evaluator {
     constructor(){
         this.realm = new Realm();
         this.globalObject = new JSObject;
+        this.globalObject.set("log", new JSObject);
+        this.globalObject.get("log").call = args => {
+            console.log(args);
+        }
         this.ecs = [new ExecutionContext(this.realm, 
             new ObjectEnvironmentRecord(this.globalObject),
             new ObjectEnvironmentRecord(this.globalObject))];
@@ -291,7 +295,9 @@ export class Evaluator {
         if(node.children.length === 2){
             let func = this.evaluate(node.children[0]);
             let args = this.evaluate(node.children[1]);
-            return func.call();
+            if (func instanceof Reference)
+                func = func.get();
+            return func.call(args);
             // let object = this.realm.Object.construct();
             // let cls = this.evaluate(node.children[1]);
             // let result = cls.call(object);
@@ -321,11 +327,30 @@ export class Evaluator {
         let runningEC = this.ecs[this.ecs.length - 1];
         return new Reference(
             runningEC.lexicalEnvironment,
-            node.name
+            node.value // 貌似有点问题
         );
     }
+    Arguments(node){
+        if(node.children.length === 2){
+            return [];
+        } else {
+            return this.evaluate(node.children[1]);
+        }
+    }
+    ArgumentList(node){
+        if(node.children.length === 1){
+            let result = this.evaluate(node.children[0]);
+            if (result instanceof Reference)
+                result = result.get();
+            return [result];
+        } else {
+            let result = this.evaluate(node.children[1]);
+            if(result instanceof Reference)
+                result = result.get();
+            return this.evaluate(node.children[0]).concat(result);
+        }
+    }
     Block(node){
-        console.log(node.children)
         if(node.children.length === 2){
             return;
         }
@@ -335,7 +360,6 @@ export class Evaluator {
             new EnvironmentRecord(runningEC.lexicalEnvironment),
             runningEC.variableEnvironment
             );
-        console.log(newEC);
         this.ecs.push(newEC);
         let result = this.evaluate(node.children[1]);
         this.ecs.pop(newEC);
