@@ -85,7 +85,7 @@ let syntax = {
     ],
     ArgumentList: [
         ["AssignmentExpression"],
-        ["ArgumentList", "AssignmentExpression"]
+        ["ArgumentList", ",", "AssignmentExpression"]
     ],
     NewExpression:[
         ['MemberExpression'],

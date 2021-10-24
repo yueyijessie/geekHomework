@@ -26,6 +26,18 @@ export class Evaluator {
             new ObjectEnvironmentRecord(this.globalObject),
             new ObjectEnvironmentRecord(this.globalObject))];
     }
+    evaluateModule(node){
+        let globalEC = this.ecs[0];
+        let newEC = new ExecutionContext(
+            this.realm,
+            new EnvironmentRecord(globalEC.lexicalEnvironment),
+            new EnvironmentRecord(globalEC.lexicalEnvironment)
+        );
+        this.ecs.push(newEC);
+        let result = this.evaluate(node);
+        this.ecs.pop();
+        return result;
+    }
     // 执行语法树
     evaluate(node) {
         if (this[node.type]){
@@ -327,7 +339,7 @@ export class Evaluator {
         let runningEC = this.ecs[this.ecs.length - 1];
         return new Reference(
             runningEC.lexicalEnvironment,
-            node.value // 貌似有点问题
+            node.name // 貌似有点问题, 老师是name，（我用value，但是log函数有问题，其他都没问题）
         );
     }
     Arguments(node){
@@ -344,7 +356,7 @@ export class Evaluator {
                 result = result.get();
             return [result];
         } else {
-            let result = this.evaluate(node.children[1]);
+            let result = this.evaluate(node.children[2]);
             if(result instanceof Reference)
                 result = result.get();
             return this.evaluate(node.children[0]).concat(result);
@@ -364,5 +376,25 @@ export class Evaluator {
         let result = this.evaluate(node.children[1]);
         this.ecs.pop(newEC);
         return result;
+    }
+    FunctionDeclaration(node){
+        let name = node.children[1].name;
+        let code = node.children[node.children.length - 2];
+        let func = new JSObject;
+        func.call = args => {
+            let newEC = new ExecutionContext(
+                this.realm,
+                new EnvironmentRecord(func.environment),
+                new EnvironmentRecord(func.environment)
+            );
+            this.ecs.push(newEC);
+            this.evaluate(code);
+            this.ecs.pop();
+        }
+        let runningEC = this.ecs[this.ecs.length - 1];
+        runningEC.lexicalEnvironment.add(name);
+        runningEC.lexicalEnvironment.set(name, func);
+        func.environment = runningEC.lexicalEnvironment;
+        return new CompletionRecord("normal");
     }
 }

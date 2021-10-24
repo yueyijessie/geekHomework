@@ -99,7 +99,7 @@ export function* scan(str){
         } else if (r.Identifier) {
             yield {
                 type: "Identifier",
-                value: r[0]
+                name: r[0]
             }
         } else if (r.Keywords) {
             yield {
