@@ -80,7 +80,7 @@ export class Evaluator {
     VariableDeclaration(node){
         // console.log("Declare varible", node.children[1].name);
         let runningEC = this.ecs[this.ecs.length - 1];
-        runningEC.variableEnvironment.add(node.children[1].name);
+        runningEC.lexicalEnvironment.add(node.children[1].name);
         return new CompletionRecord("normal", new JSUndefined);
     }
     ExpressionStatement(node){
@@ -93,7 +93,6 @@ export class Evaluator {
         return this.evaluate(node.children[0]);
     }
     AdditiveExpression(node){
-        console.log(node)
         if (node.children.length === 1)
             return this.evaluate(node.children[0]);
         else {
@@ -322,13 +321,24 @@ export class Evaluator {
         let runningEC = this.ecs[this.ecs.length - 1];
         return new Reference(
             runningEC.lexicalEnvironment,
-            node.value
+            node.name
         );
     }
     Block(node){
+        console.log(node.children)
         if(node.children.length === 2){
             return;
         }
-        return this.evaluate(node.children[1]);
+        let runningEC = this.ecs[this.ecs.length - 1];
+        let newEC = new ExecutionContext(
+            runningEC.realm,
+            new EnvironmentRecord(runningEC.lexicalEnvironment),
+            runningEC.variableEnvironment
+            );
+        console.log(newEC);
+        this.ecs.push(newEC);
+        let result = this.evaluate(node.children[1]);
+        this.ecs.pop(newEC);
+        return result;
     }
 }
