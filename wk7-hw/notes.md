@@ -17,7 +17,12 @@ trycatchfinally
 
 ## Toy-JavaScript ｜ 完成记录类型
 
+处理break，continue
+
 ## Toy-JavaScript ｜ 作用域
+
+block级的作用域
+代码里的叫做scope，运行时的叫做environment
 
 ## Toy-JavaScript ｜调用函数
 

@@ -9,14 +9,18 @@ import {
     JSUndefined,
     JSNull, 
     JSSymbol,
-    CompletionRecord
+    CompletionRecord,
+    EnvironmentRecord,
+    ObjectEnvironmentRecord
 } from "./runtime.js";
 
 export class Evaluator {
     constructor(){
         this.realm = new Realm();
-        this.globalObject = {};
-        this.ecs = [new ExecutionContext(this.realm, this.globalObject)];
+        this.globalObject = new JSObject;
+        this.ecs = [new ExecutionContext(this.realm, 
+            new ObjectEnvironmentRecord(this.globalObject),
+            new ObjectEnvironmentRecord(this.globalObject))];
     }
     // 执行语法树
     evaluate(node) {
@@ -76,17 +80,20 @@ export class Evaluator {
     VariableDeclaration(node){
         // console.log("Declare varible", node.children[1].name);
         let runningEC = this.ecs[this.ecs.length - 1];
-        runningEC.variableEnvironment[node.children[1].name] = new JSUndefined;
+        runningEC.variableEnvironment.add(node.children[1].name);
         return new CompletionRecord("normal", new JSUndefined);
     }
     ExpressionStatement(node){
-        this.evaluate(node.children[0]);
-        return new CompletionRecord("normal", this.evaluate(node.children[0]))
+        let result = this.evaluate(node.children[0]);
+        if(result instanceof Reference)
+            result = result.get();
+        return new CompletionRecord("normal", result);
     }
     Expression(node){
         return this.evaluate(node.children[0]);
     }
     AdditiveExpression(node){
+        console.log(node)
         if (node.children.length === 1)
             return this.evaluate(node.children[0]);
         else {
@@ -99,7 +106,8 @@ export class Evaluator {
                 right = right.get();
             }
             if(node.children[1].type === "+"){
-                return left + right;
+                console.log(left.value,right.value)
+                return new JSNumber(left.value + right.value);
             }
             if(node.children[1].type === "-"){
                 return new JSNumber(left.value - right.value);

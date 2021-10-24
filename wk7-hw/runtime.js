@@ -1,3 +1,4 @@
+// 执行上下文
 export class ExecutionContext {
     constructor(realm, lexicalEnvironment, variableEnvironment){
         variableEnvironment = variableEnvironment || lexicalEnvironment;
@@ -8,16 +9,62 @@ export class ExecutionContext {
     // lexicalEnvironment:{a:1, b:2}
 }
 
+export class EnvironmentRecord{
+    constructor(outer){
+        this.outer = outer;
+        this.variables = new Map;
+    }
+    add(name){
+        this.variables.set(name, new JSUndefined);
+    }
+    get(name){
+        if (this.variables.has(name)){
+            return this.variables.get(name);
+        } else if(this.outer){
+            return this.outer.get(name);
+        } else {
+            return JSUndefined;
+        }
+    }
+    set(name, value = new JSUndefined){
+        if (this.variables.has(name)){
+            return this.variables.set(name,value);
+        } else if(this.outer){
+            return this.outer.set(name,value);
+        } else {
+            return this.variables.set(name,value);
+        }
+    }
+}
+
+export class ObjectEnvironmentRecord{
+    constructor(object, outer){
+        this.object = object;
+        this.outer = outer;
+    }
+    add(name){
+        this.object.set(name, new JSUndefined);
+    }
+    get(name){
+        return this.object.get(name);
+        // todo: with statement need outer
+    }
+    set(name, value = new JSUndefined){
+        this.object.set(name, value);
+        // todo: with statement need outer
+    }
+}
+
 export class Reference {
     constructor(object, property){
         this.object = object;
         this.property = property;
     }
     set(value){
-        this.object[this.property] = value;
+        this.object.set(this.property, value);
     }
     get(){
-        return this.object[this.property];
+        return this.object.get(this.property);
     }
 }
 
@@ -132,16 +179,29 @@ export class JSObject extends JSValue{
     constructor(proto){
         super();
         this.properties = new Map();
-        this.prototype = protp || null;
+        this.prototype = proto || null;
+    }
+    set(name, value){
+        // todo: writable etc.
+        this.setProperty(name,{
+            value: value,
+            enumerable: true,
+            configurable: true,
+            writable: true
+        })
+    }
+    get(name){
+        // todo: prototype chain && getter
+        return this.getProperty(name).value;
     }
     setProperty(name, attributes){
-        this.properties.set(name, attributes)
+        this.properties.set(name, attributes);
     }
-    getProperty(name, attributes){
-        // todo
+    getProperty(name){
+        return this.properties.get(name);
     }
-    setPrototype(ptoto){
-        this.prototype = ptoto;
+    setPrototype(proto){
+        this.prototype = proto;
     }
     getPrototype(){
         return this.prototype;
@@ -176,14 +236,6 @@ export class JSSymbol extends JSValue{
     constructor(name){
         super();
         this.name = name || "";
-    }
-}
-
-export class EnvironmentRecord {
-    constructor(){
-        this.thisValue
-        this.variables = new Map(),
-        this.outer = null;
     }
 }
 

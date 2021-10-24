@@ -98,7 +98,7 @@ let syntax = {
         ["StringLiteral"],
         ["BooleanLiteral"],
         ["NullLiteral"],
-        ["RegularExpression"],
+        ["RegularExpressionLiteral"],
         ["ObjectLiteral"],
         ["ArrayLiteral"]
     ],
