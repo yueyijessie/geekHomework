@@ -63,7 +63,7 @@ export function* scan(str){
         StringLiteral: /\"(?:[^"\n]|\\[\s\S])*\"|\'(?:[^'\n]|\\[\s\S])*\'/,  //实际字符串要更复杂，还有多种换行符，转义符等
         NullLiteral: /null/,
         Identifier: /[a-zA-Z_$][a-zA-Z0-9_$]*/,
-        Keywords: /if|else|for|function|let|var|new|while/,
+        Keywords: /continue|break|if|else|for|function|let|var|new|while/,
         Punctuator: /\|\||\&\&|\+|\-|\,|\?|\:|\{|\}|\.|\(|\=|\<|\+\+|\=\=|\=\>|\*|\)|\[|\]|;/
     }, "g", "InputElement")
 

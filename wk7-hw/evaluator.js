@@ -8,7 +8,8 @@ import {
     JSString, 
     JSUndefined,
     JSNull, 
-    JSSymbol
+    JSSymbol,
+    CompletionRecord
 } from "./runtime.js";
 
 export class Evaluator {
@@ -42,19 +43,31 @@ export class Evaluator {
             if(condition instanceof Reference)
                 condition = condition.get();   
             if(condition.toBoolean().value){
-                this.evaluate(node.children[4]);
+                let record = this.evaluate(node.children[4]);
+                if (record.type === "continue")
+                    continue;
+                if (record.type === "break")
+                    return new CompletionRecord("normal");
             } else {
-                break;
+                return new CompletionRecord("normal");
             }
         } 
     }
+    BreakStatement(node){
+        return new CompletionRecord("break");
+    }
+    ContinueStatement(node){
+        return new CompletionRecord("continue");
+    }
     StatementList(node) {
-        // console.log(node)
         if (node.children.length === 1) {
             return this.evaluate(node.children[0]);
         } else {
-            this.evaluate(node.children[0]);
-            return this.evaluate(node.children[1]);
+            let record = this.evaluate(node.children[0]);
+            if(record.type === "normal")
+                return this.evaluate(node.children[1]);
+            else
+                return record;
         }
     }
     Statement(node) {
@@ -64,9 +77,11 @@ export class Evaluator {
         // console.log("Declare varible", node.children[1].name);
         let runningEC = this.ecs[this.ecs.length - 1];
         runningEC.variableEnvironment[node.children[1].name] = new JSUndefined;
+        return new CompletionRecord("normal", new JSUndefined);
     }
     ExpressionStatement(node){
-        return this.evaluate(node.children[0]);
+        this.evaluate(node.children[0]);
+        return new CompletionRecord("normal", this.evaluate(node.children[0]))
     }
     Expression(node){
         return this.evaluate(node.children[0]);
@@ -301,5 +316,11 @@ export class Evaluator {
             runningEC.lexicalEnvironment,
             node.value
         );
+    }
+    Block(node){
+        if(node.children.length === 2){
+            return;
+        }
+        return this.evaluate(node.children[1]);
     }
 }

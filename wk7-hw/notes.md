@@ -9,11 +9,11 @@
 while，
 trycatchfinally
 
-
-
 ## Toy-JavaScript ｜ 补全基本类型和类型转换规则
 
 ## Toy-JavaScript ｜ 语句块
+
+把多个语句设为一个语句的方法，处理{}
 
 ## Toy-JavaScript ｜ 完成记录类型
 

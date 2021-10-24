@@ -14,7 +14,20 @@ let syntax = {
         ["IfStatement"],
         ["WhileStatement"],
         ["VariableDeclaration"],
-        ["FunctionDeclaration"]
+        ["FunctionDeclaration"],
+        ["Block"],
+        ["BreakStatement"],
+        ["ContinueStatement"]
+    ],
+    BreakStatement:[
+        ["break", ";"]
+    ],
+    ContinueStatement:[
+        ["continue", ";"]
+    ],
+    Block: [
+        ["{", "StatementList", "}"],
+        ["{", "}"]
     ],
     WhileStatement: [
         ["while", "(", "Expression", ")", "Statement"]
