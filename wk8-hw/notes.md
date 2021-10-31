@@ -20,7 +20,9 @@ children
 
 ## 组件的基本知识 ｜ 为组件添加JSX语法
 
-jsx，语言扩展，创建html标签的快捷使用
+- jsx，一种JavaScript的语法扩展，也在很多地方称为JavaScript XML, 运用于React架构中
+- 创建html标签的快捷使用, JSX标签是闭合式的，像XML/HTML一样在结尾处用/>表示
+- 在JSX中可任意使用JavaScript表达式，但要包含在大括号里
 
 ## 组件的基本知识 ｜ JSX的基本使用方法
 

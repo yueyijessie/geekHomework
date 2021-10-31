@@ -41,6 +41,7 @@ class Carousel extends Component {
             let up = event => {
                 let x = event.clientX - startX
                 position = position - Math.round(x / 500)
+                // Math.sign() 正数返回1，负数返回-1
                 for(let offset of [0, - Math.sign(Math.round(x / 500) - x + 250 * Math.sign(x))]) {
                     let pos = position + offset
                     pos = (pos + children.length) % children.length // 使用取余运算来循环
