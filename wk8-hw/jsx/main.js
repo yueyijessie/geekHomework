@@ -28,18 +28,24 @@ class Carousel extends Component {
             let move = event => {
                 // event.clientX, event.clientY, 得到每次move的一系列坐标
                 let x = event.clientX - startX, y = event.clientY - startY
-                for(let child of children) {
-                    child.style.transition = 'none'
-                    child.style.transform = `translateX(${- position * 500 + x}px)`
+
+                let current = position -  ((x - x % 500) / 500)
+                for(let offset of [-1, 0, 1]) {
+                    let pos = current + offset
+                    pos = (pos + children.length) % children.length // 使用取余运算来循环
+                    children[pos].style.transition = 'none'
+                    children[pos].style.transform = `translateX(${- pos * 500 + offset * 500 + x % 500}px)`
                 }
             }
 
             let up = event => {
                 let x = event.clientX - startX
                 position = position - Math.round(x / 500)
-                for(let child of children) {
-                    child.style.transition = ''
-                    child.style.transform = `translateX(${- position * 500}px)`
+                for(let offset of [0, - Math.sign(Math.round(x / 500) - x + 250 * Math.sign(x))]) {
+                    let pos = position + offset
+                    pos = (pos + children.length) % children.length // 使用取余运算来循环
+                    children[pos].style.transition = ''
+                    children[pos].style.transform = `translateX(${- pos * 500 + offset * 500}px)`
                 }
                 // 使用document监听，可以避免鼠标在down后移出图片，或者移出浏览器外，丢失up事件
                 document.removeEventListener("mousemove", move);
