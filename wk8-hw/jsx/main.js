@@ -18,16 +18,29 @@ class Carousel extends Component {
             this.root.appendChild(child)
         }
 
+        let position = 0;
+
         // 手动播放——拖拽
         this.root.addEventListener('mousedown', event => {
-            console.log('mousedown')
+            let children = this.root.children;
+            let startX = event.clientX, startY = event.clientY
 
             let move = event => {
-                console.log("mousemove")
+                // event.clientX, event.clientY, 得到每次move的一系列坐标
+                let x = event.clientX - startX, y = event.clientY - startY
+                for(let child of children) {
+                    child.style.transition = 'none'
+                    child.style.transform = `translateX(${- position * 500 + x}px)`
+                }
             }
 
             let up = event => {
-                console.log("mouseup")
+                let x = event.clientX - startX
+                position = position - Math.round(x / 500)
+                for(let child of children) {
+                    child.style.transition = ''
+                    child.style.transform = `translateX(${- position * 500}px)`
+                }
                 // 使用document监听，可以避免鼠标在down后移出图片，或者移出浏览器外，丢失up事件
                 document.removeEventListener("mousemove", move);
                 document.removeEventListener("mouseup", up);
