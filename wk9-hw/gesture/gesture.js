@@ -1,43 +1,83 @@
-// import { clear } from "console";
-
 let element = document.documentElement;
+
+let isListeningMouse = false;
 
 // 鼠标事件
 element.addEventListener("mousedown", event => {
-    start(event)
+    // console.log(event.button) // 查看按的是左键，右键，中键
+    let context = Object.create(null); // 创建空对象的方法，避免原始属性出现
+    contexts.set("mouse" + (1 << event.button), context);
+
+    start(event, context);
+
     let mousemove = event => {
         // console.log(event.clientX, event.clientY);
-        move(event)
+        // move事件不区分按哪个键，但用event.buttons掩码表示按了什么， 0b00001表示左键
+        let button = 1
+        while (button <= event.buttons){
+            if (button & event.buttons){
+                // 鼠标中键和右键顺序相反，order of buttoms & button property is not same
+                let key;
+                if(button === 2){
+                    key = 4
+                }
+                else if(button === 4){
+                    key = 2
+                } else {
+                    key = button
+                }
+                let context = contexts.get("mouse" + key);
+                move(event, context)
+            }
+            button =  button << 1
+        }
     }
     let mouseup = event => {
-        end(event)
-        element.removeEventListener("mousemove", mousemove);
-        element.removeEventListener("mouseup", mouseup);
+        console.log("end", event.button)
+        let context = contexts.get("mouse" + (1 << event.button));
+        end(event, context)
+        contexts.delete("mouse" + (1 << event.button))
+
+        if(event.buttons === 0){
+            element.removeEventListener("mousemove", mousemove);
+            element.removeEventListener("mouseup", mouseup);
+            isListeningMouse = false;
+        }
     }
-    element.addEventListener("mousemove", mousemove);
-    element.addEventListener("mouseup", mouseup);
+    if (!isListeningMouse){
+        element.addEventListener("mousemove", mousemove);
+        element.addEventListener("mouseup", mouseup);
+        isListeningMouse = true;
+    }
 })
+
+let contexts = new Map();
 
 // 触摸屏幕事件
 element.addEventListener("touchstart", event => {
     console.log(event.changedTouches)
     for (let touch of event.changedTouches) {
         // console.log("start", touch.clientX, touch.clientY)
-        start(touch)
+        let context = Object.create(null);
+        contexts.set(touch.identifier, context)
+        start(touch, context)
     }
 })
 
 element.addEventListener("touchmove", event => {
     for (let touch of event.changedTouches) {
         // console.log("move", touch.clientX, touch.clientY)
-        move(touch)
+        let context = contexts.get(touch.identifier)
+        move(touch, context)
     }
 })
 
 element.addEventListener("touchend", event => {
     for (let touch of event.changedTouches) {
         // console.log("end", touch.clientX, touch.clientY)
-        end(touch)
+        let context = contexts.get(touch.identifier)
+        end(touch, context)
+        contexts.delete(touch.identifier)
     }
 })
 
@@ -45,67 +85,68 @@ element.addEventListener("touchend", event => {
 element.addEventListener("touchcancel", event => {
     for (let touch of event.changedTouches) {
         // console.log("cancel", touch.clientX, touch.clientY)
+        let context = contexts.get(touch.identifier)
         cancel(touch)
+        contexts.delete(touch.identifier)
     }
 })
 
 
 let handler;
 let startX, startY;
-let isPan = false; isTap = true
+let isPan = false, isTap = true, isPress = false;
 
 // 统一鼠标和touch事件
-let start = (point) => {
+let start = (point, context) => {
     // console.log("start", point.clientX, point.clientY)
-    startX = point.clientX, startY = point.clientY
+    context.startX = point.clientX, context.startY = point.clientY
 
-    isPan = false;
-    isTap = true;
-    isPress = false
+    context.isPan = false;
+    context.isTap = true;
+    context.isPress = false
 
-    handler = setTimeout(() => {
-        isPan = false;
-        isTap = false;
-        isPress = true;
-        handler = null
+    context.handler = setTimeout(() => {
+        context.isPan = false;
+        context.isTap = false;
+        context.isPress = true;
+        context.handler = null
         console.log("press")
     }, 500)
 }
 
-let move = (point) => {
-    let dx = point.clientX - startX, dy = point.clientY - startY
+let move = (point, context) => {
+    let dx = point.clientX - context.startX, dy = point.clientY - context.startY
     // 判断移动大于10px
-    if (!isPan && dx ** 2 + dy ** 2 > 100){
-        isPan = true;
-        isTap = false;
-        isPress = false
+    if (!context.isPan && dx ** 2 + dy ** 2 > 100){
+        context.isPan = true;
+        context.isTap = false;
+        context.isPress = false
         console.log("panstart")
-        clearTimeout(handler)
+        clearTimeout(context.handler)
     }
 
-    if(isPan){
+    if(context.isPan){
         console.log(dx,dy)
         console.log("pan")
     }
-
     // console.log("move", point.clientX, point.clientY)
 }
 
-let end = (point) => {
-    if(isTap){
+let end = (point, context) => {
+    if(context.isTap){
         console.log("tap")
-        clearTimeout(handler)
+        clearTimeout(context.handler)
     }
-    if(isPan){
+    if(context.isPan){
         console.log("panend")
     }
-    if(isPress){
+    if(context.isPress){
         console.log("pressend")
     }
     // console.log("end", point.clientX, point.clientY)
 }
 
-let cancel = (point) => {
-    clearTimeout(handler)
+let cancel = (point, context) => {
+    clearTimeout(context.handler)
     console.log("cancel", point.clientX, point.clientY)
 }
