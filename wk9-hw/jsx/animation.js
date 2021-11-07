@@ -15,23 +15,33 @@
 const TICK = Symbol('tick');
 const TICK_HANDLER = Symbol('tick-handler');
 const ANIMATIONS = Symbol('animations');
+const START_TIME = Symbol('start-time');
 
 export class Timeline {
     constructor(){
         this[ANIMATIONS] = new Set()
+        this[START_TIME] = new Map()
     }
     start(){
         let startTime = Date.now();
         this[TICK] = () => {
             // console.log("tick");
-            let t = Date.now() - startTime;
+            let now = Date.now();
             for(let animation of this[ANIMATIONS]){
-                let t0 = t // 处理超出范围的问题
+                let t
+
+                // 动态想timeline添加animation
+                if(this[START_TIME].get(animation) < startTime){
+                    t = now - startTime
+                } else {
+                    t = now - this[START_TIME].get(animation)
+                }
+                
                 if (animation.duration < t){
                     this[ANIMATIONS].delete(animation)
-                    t0 = animation.duration
+                    t = animation.duration
                 }
-                animation.receive(t0)
+                animation.receive(t)
             }
             requestAnimationFrame(this[TICK])
         }
@@ -46,18 +56,24 @@ export class Timeline {
     reset(){
 
     }
-    add(animation){
+    add(animation, startTime){
+        if (arguments.length < 2){
+            // 参数数量不足时，给默认值
+            startTime = Date.now() 
+        }
         this[ANIMATIONS].add(animation)
+        this[START_TIME].set(animation, startTime)
     }
 }
 
 export class Animation {
-    constructor(object, property, startValue, endValue, duration, timingFuction){
+    constructor(object, property, startValue, endValue, duration, delay, timingFuction){
         this.object = object;
         this.property = property;
         this.startValue = startValue;
         this.endValue = endValue;
         this.duration = duration;
+        this.delay = delay;
         this.timingFuction = timingFuction;
     }
     receive(time){
