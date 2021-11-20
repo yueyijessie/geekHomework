@@ -4,11 +4,22 @@ module.exports = class extends Generator {
     constructor(args, opts) {
         super(args, opts);
     }
-    method1() {
-        this.log('method 1 just ran');
-    }
-
-    method2() {
-        this.log('method 2 just ran');
+    async method1() {
+        // 通过命令行与用户交互，prompt输入
+        const answers = await this.prompt([
+            {
+                type: "input",
+                name: "name",
+                message: "Your project name",
+                default: this.appname
+            },
+            {
+                type: "confirm",
+                name: "cool",
+                message: "Would you like to enable the Cool feature?"
+            }
+        ])
+        this.log('app name', answers.name);
+        this.log('cool feature', answers.cool);
     }
 }
