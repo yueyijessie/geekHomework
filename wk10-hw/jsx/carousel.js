@@ -1,20 +1,21 @@
-import {Component} from "./framework.js"
+import {Component, STATE, ATTRIBUTE} from "./framework.js"
 import { enableGesture } from "../gesture/gesture.js"
 import { Timeline, Animation } from "./animation.js"
 import {ease} from "./ease.js"
 
+export {STATE, ATTRIBUTE} from "./framework.js";
+
+console.log(STATE)
+
 export class Carousel extends Component {
     constructor(){
         super()
-        this.attributes = Object.create(null)
     }
-    setAttribute(name, value){
-        this.attributes[name] = value
-    }
+    
     render(){
         this.root = document.createElement("div")
         this.root.classList.add('carousel')
-        for(let record of this.attributes.src) {
+        for(let record of this[ATTRIBUTE].src) {
             let child = document.createElement("div")
             child.style.backgroundImage = `url('${record}')`
             this.root.appendChild(child)
@@ -27,7 +28,7 @@ export class Carousel extends Component {
         let handler = null
 
         let children = this.root.children;
-        let position = 0;
+        this[STATE].position = 0; // 当前滚动到的位置
         let t = 0; // 现在播放的时间
         let ax = 0; // 动画造成的位移（兼容动画和手势）
 
@@ -35,17 +36,18 @@ export class Carousel extends Component {
             console.log('自动播放pause')
             timeline.pause()
             clearInterval(handler)
-            console.log(handler)
-            let progress = (Date.now() - t) / 500  // 计算动画播放的进度
-            console.log(progress)
-            ax = ease(progress) * 500 - 500
-            console.log(ax)
+            if (Date.now() - t < 1500) {
+                let progress = (Date.now() - t) / 1500  // 计算动画播放的进度
+                ax = ease(progress) * 500 - 500
+            } else {
+                ax = 0
+            }
         })
 
         this.root.addEventListener("pan", event => {
             console.log('拖拽')
             let x = event.clientX - event.startX - ax
-            let current = position -  ((x - x % 500) / 500)
+            let current = this[STATE].position -  ((x - x % 500) / 500)
             for(let offset of [-1, 0, 1]) {
                 let pos = current + offset
                 pos = (pos % children.length + children.length) % children.length // 使用取余运算来循环
@@ -58,10 +60,11 @@ export class Carousel extends Component {
             timeline.reset()
             timeline.start()
             handler = setInterval(nextPicture, 3000)
+            console.log('自动播放start')
             console.log(handler)
 
             let x = event.clientX - event.startX - ax
-            let current = position -  ((x - x % 500) / 500)
+            let current = this[STATE].position -  ((x - x % 500) / 500)
 
             let direction = Math.round((x % 500) / 500)
             console.log(direction)
@@ -89,33 +92,30 @@ export class Carousel extends Component {
                     - pos * 500 + offset * 500 + direction * 500)
             }
 
-            position = position - ((x - x % 500) / 500) - direction
-            position = (position % children.length + children.length) % children.length // 取正数
-            console.log(position)
+            this[STATE].position = this[STATE].position - ((x - x % 500) / 500) - direction
+            this[STATE].position = (this[STATE].position % children.length + children.length) % children.length // 取正数
         })
 
         let nextPicture = () => {
             let children = this.root.children;
-            let nextPosition = (position + 1) % children.length; // 防止轮播超出图片长度的范围
+            let nextPosition = (this[STATE].position + 1) % children.length; // 防止轮播超出图片长度的范围
             
-            let current = children[position];
+            let current = children[this[STATE].position];
             let next = children[nextPosition];
 
             t = Date.now()
 
             timeline.add(new Animation(current.style, 'transform',
-                - position * 500, -500 - position * 500, 500, 0, ease, v => `translateX(${v}px)`))
+                - this[STATE].position * 500, -500 - this[STATE].position * 500, 500, 0, ease, v => `translateX(${v}px)`))
             timeline.add(new Animation(next.style, 'transform',
                 500 - nextPosition * 500, - nextPosition * 500, 500, 0, ease, v => `translateX(${v}px)`))
 
-            position = nextPosition
+            this[STATE].position = nextPosition
         }
 
         // 自动播放
         handler = setInterval(nextPicture, 3000)
         return this.root;
     }
-    mountTo(parent){
-        parent.appendChild(this.render())
-    }
+    
 }
