@@ -17,7 +17,7 @@ export class Carousel extends Component {
         this.root.classList.add('carousel')
         for(let record of this[ATTRIBUTE].src) {
             let child = document.createElement("div")
-            child.style.backgroundImage = `url('${record}')`
+            child.style.backgroundImage = `url('${record.img}')`
             this.root.appendChild(child)
         }
 
@@ -42,6 +42,13 @@ export class Carousel extends Component {
             } else {
                 ax = 0
             }
+        })
+
+        this.root.addEventListener("tap", event => {
+            this.triggerEvent("click", {
+                data: this[ATTRIBUTE].src[this[STATE].position],
+                position: this[STATE].position
+            })
         })
 
         this.root.addEventListener("pan", event => {
@@ -94,6 +101,7 @@ export class Carousel extends Component {
 
             this[STATE].position = this[STATE].position - ((x - x % 500) / 500) - direction
             this[STATE].position = (this[STATE].position % children.length + children.length) % children.length // 取正数
+            this.triggerEvent("change", {position: this[STATE].position})
         })
 
         let nextPicture = () => {
@@ -109,8 +117,8 @@ export class Carousel extends Component {
                 - this[STATE].position * 500, -500 - this[STATE].position * 500, 500, 0, ease, v => `translateX(${v}px)`))
             timeline.add(new Animation(next.style, 'transform',
                 500 - nextPosition * 500, - nextPosition * 500, 500, 0, ease, v => `translateX(${v}px)`))
-
             this[STATE].position = nextPosition
+            this.triggerEvent("change", {position: this[STATE].position})
         }
 
         // 自动播放

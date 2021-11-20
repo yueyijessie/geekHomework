@@ -37,6 +37,9 @@ export class Component {
         }
         parent.appendChild(this.root);
     }
+    triggerEvent(type, args){
+        this[ATTRIBUTE]["on" + type.replace(/^[\s\S]/, s => s.toUpperCase())](new CustomEvent(type, {detail:args}))
+    }
 }
 
 class ElementWrapper extends Component {
