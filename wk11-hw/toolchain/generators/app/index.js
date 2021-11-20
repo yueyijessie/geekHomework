@@ -4,22 +4,12 @@ module.exports = class extends Generator {
     constructor(args, opts) {
         super(args, opts);
     }
-    async method1() {
-        // 通过命令行与用户交互，prompt输入
-        const answers = await this.prompt([
-            {
-                type: "input",
-                name: "name",
-                message: "Your project name",
-                default: this.appname
-            },
-            {
-                type: "confirm",
-                name: "cool",
-                message: "Would you like to enable the Cool feature?"
-            }
-        ])
-        this.log('app name', answers.name);
-        this.log('cool feature', answers.cool);
+
+    async step1() {
+        this.fs.copyTpl(
+            this.templatePath('t.html'),
+            this.destinationPath('public/index.html'),
+            {title: 'Templating with Yeoman'}
+        )
     }
 }
