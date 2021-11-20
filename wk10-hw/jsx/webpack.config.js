@@ -2,7 +2,7 @@ let webpack = require('webpack');
 
 // 一个nodejs模块
 module.exports = {
-    entry: "./animation-demo.js",
+    entry: "./main.js",
     module: {
         rules: [
             {
