@@ -5,8 +5,6 @@ import {ease} from "./ease.js"
 
 export {STATE, ATTRIBUTE} from "./framework.js";
 
-console.log(STATE)
-
 export class Carousel extends Component {
     constructor(){
         super()
