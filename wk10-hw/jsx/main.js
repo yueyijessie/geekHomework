@@ -32,6 +32,7 @@ let d = [
 //     onChange={event => console.log(event.detail.position)}
 //     onClick={event => window.location.href = event.detail.data.url}/>
 
+// content型children
 // let a = <Button>
 //     content
 // </Button>
